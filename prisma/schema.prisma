@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Item {
+  id           String   @id @default(uuid())
+  name         String
+  category     String
+  currentStock Int      @default(0)
+  unit         String
+  location     String
+  imageUrl     String?
+  description  String?  @default("")
+  
+  transactions Transaction[]
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  itemId      String
+  type        TransactionType
+  quantity    Int
+  description String?  // Making description optional as it might not always be needed, or specific to OUT
+  createdAt   DateTime @default(now())
+
+  item        Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+}
+
+enum TransactionType {
+  IN
+  OUT
+}
