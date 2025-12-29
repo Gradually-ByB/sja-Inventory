@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
     Dialog,
     DialogContent,
@@ -90,8 +91,11 @@ export function TransactionEditDialog({ transaction, trigger }: TransactionEditD
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>
-                        {isOut ? "출고" : "입고"} 내역 수정: {transaction.item.name}
+                    <DialogTitle className="flex flex-col gap-1 items-start">
+                        <span>{isOut ? "출고" : "입고"} 내역 수정</span>
+                        <Badge variant={isOut ? "destructive" : "default"} className="text-base font-normal">
+                            {transaction.item.name}
+                        </Badge>
                     </DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
