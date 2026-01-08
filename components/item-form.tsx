@@ -22,10 +22,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createItem, updateItem, uploadFile } from "@/app/actions";
+import { createItem, updateItem } from "@/app/actions";
 import { toast } from "sonner";
 import { Item } from "@prisma/client";
-import { Upload, X, Image as ImageIcon } from "lucide-react";
+import { X, Image as ImageIcon } from "lucide-react";
 
 const formSchema = z.object({
     name: z.string().min(1, "품명을 입력해주세요"),
@@ -81,20 +81,12 @@ export function ItemForm({ item, open, onOpenChange, trigger }: ItemFormProps) {
         }
     }, [showOpen, item, form]);
 
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(item?.imageUrl || null);
 
     async function onSubmit(values: FormValues) {
         setIsSubmitting(true);
         try {
-            let finalImageUrl = values.imageUrl;
-
-            if (selectedFile) {
-                const formData = new FormData();
-                formData.append("file", selectedFile);
-                finalImageUrl = await uploadFile(formData);
-            }
-
+            const finalImageUrl = values.imageUrl;
             const finalValues = { ...values, imageUrl: finalImageUrl };
 
             if (item) {
@@ -107,7 +99,6 @@ export function ItemForm({ item, open, onOpenChange, trigger }: ItemFormProps) {
             setShowOpen(false);
             if (!item) {
                 form.reset();
-                setSelectedFile(null);
                 setPreviewUrl(null);
             }
         } catch (error) {
@@ -117,18 +108,6 @@ export function ItemForm({ item, open, onOpenChange, trigger }: ItemFormProps) {
             setIsSubmitting(false);
         }
     }
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setSelectedFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreviewUrl(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
 
     return (
         <Dialog open={showOpen} onOpenChange={setShowOpen}>
@@ -290,9 +269,9 @@ export function ItemForm({ item, open, onOpenChange, trigger }: ItemFormProps) {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-[1fr,60px] gap-3 items-end pt-1">
+                            <div className="pt-1">
                                 <div className="space-y-1.5">
-                                    <FormLabel className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">상품 이미지 (URL입력 / 파일업로드)</FormLabel>
+                                    <FormLabel className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">상품 이미지 (URL)</FormLabel>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                             <ImageIcon className="h-3 w-3 text-slate-400" />
@@ -305,43 +284,7 @@ export function ItemForm({ item, open, onOpenChange, trigger }: ItemFormProps) {
                                             onChange={(e) => {
                                                 form.setValue('imageUrl', e.target.value);
                                                 setPreviewUrl(e.target.value);
-                                                setSelectedFile(null);
                                             }}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-1">
-                                    <div
-                                        className="w-[60px] h-[10] relative group cursor-pointer border border-dashed border-slate-200 rounded-md overflow-hidden bg-slate-50/50 transition-all hover:border-primary/40 hover:bg-slate-100/50 flex flex-col items-center justify-center min-h-[40px]"
-                                        style={{ height: '40px' }}
-                                        onClick={() => document.getElementById('file-upload')?.click()}
-                                    >
-                                        {previewUrl ? (
-                                            <>
-                                                <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
-                                                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                    <Button type="button" variant="destructive" size="icon" className="h-5 w-5 rounded-full" onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setSelectedFile(null);
-                                                        setPreviewUrl(null);
-                                                        form.setValue('imageUrl', '');
-                                                    }}>
-                                                        <X className="w-2.5 h-2.5" />
-                                                    </Button>
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <div className="flex items-center gap-1.5 px-2">
-                                                <Upload className="w-3 h-3 text-slate-400" />
-                                                <span className="text-[10px] font-bold text-slate-400 whitespace-nowrap">업로드</span>
-                                            </div>
-                                        )}
-                                        <input
-                                            id="file-upload"
-                                            type="file"
-                                            className="hidden"
-                                            accept="image/*"
-                                            onChange={handleFileChange}
                                         />
                                     </div>
                                 </div>
