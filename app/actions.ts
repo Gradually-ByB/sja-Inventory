@@ -4,8 +4,7 @@ import { db } from "@/lib/db";
 import { TransactionType, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { format, subDays, startOfDay, endOfDay, isWeekend } from "date-fns";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { put } from "@vercel/blob";
 import { v4 as uuidv4 } from "uuid";
 
 export async function getItems(query?: string) {
@@ -48,19 +47,12 @@ export async function uploadFile(formData: FormData): Promise<string> {
     const file = formData.get("file") as File;
     if (!file) throw new Error("No file uploaded");
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    // Upload file to Vercel Blob
+    const blob = await put(file.name, file, {
+        access: 'public',
+    });
 
-    const name = uuidv4() + path.extname(file.name);
-    const uploadDir = path.join(process.cwd(), "public/uploads");
-
-    // Ensure the directory exists
-    await mkdir(uploadDir, { recursive: true });
-
-    const filePath = path.join(uploadDir, name);
-    await writeFile(filePath, buffer);
-
-    return `/uploads/${name}`;
+    return blob.url;
 }
 
 export async function updateItem(
