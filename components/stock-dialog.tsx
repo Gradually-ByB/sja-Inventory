@@ -29,26 +29,27 @@ const OUTBOUND_DESTINATIONS = ["행정동", "PAC", "유/초등학교", "중/고�
 
 export function StockDialog({ itemId, itemName, currentStock, type }: StockDialogProps) {
     const [open, setOpen] = useState(false);
-    const [quantity, setQuantity] = useState<number>(1);
+    const [quantity, setQuantity] = useState<string>("1");
     const [description, setDescription] = useState("");
     const [loading, setLoading] = useState(false);
 
     const isOut = type === "OUT";
 
     async function handleConfirm() {
-        if (quantity <= 0) return;
+        const q = Number(quantity);
+        if (isNaN(q) || q <= 0) return;
 
-        if (isOut && quantity > currentStock) {
+        if (isOut && q > currentStock) {
             toast.error("재고가 부족합니다.");
             return;
         }
 
         setLoading(true);
         try {
-            await updateStock(itemId, type, quantity, description);
+            await updateStock(itemId, type, q, description);
             toast.success(`${isOut ? "출고" : "입고"}가 완료되었습니다.`);
             setOpen(false);
-            setQuantity(1);
+            setQuantity("1");
             setDescription("");
         } catch (error) {
             toast.error("처리에 실패했습니다.");
@@ -64,8 +65,8 @@ export function StockDialog({ itemId, itemName, currentStock, type }: StockDialo
                     variant="outline"
                     size="sm"
                     className={`h-8 px-2.5 text-[11px] font-bold ${isOut
-                            ? "text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700 dark:border-rose-900/50 dark:hover:bg-rose-950/20"
-                            : "text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 dark:border-emerald-900/50 dark:hover:bg-emerald-950/20"
+                        ? "text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700 dark:border-rose-900/50 dark:hover:bg-rose-950/20"
+                        : "text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 dark:border-emerald-900/50 dark:hover:bg-emerald-950/20"
                         }`}
                 >
                     {isOut ? <ArrowUpRight className="mr-1 h-3 w-3" /> : <ArrowDownLeft className="mr-1 h-3 w-3" />}
@@ -83,10 +84,14 @@ export function StockDialog({ itemId, itemName, currentStock, type }: StockDialo
                         <Label className="text-right">수량</Label>
                         <Input
                             type="number"
+                            inputMode="numeric"
                             min="1"
                             value={quantity}
-                            onChange={(e) => setQuantity(Number(e.target.value))}
-                            className="col-span-3"
+                            onChange={(e) => setQuantity(e.target.value)}
+                            onFocus={(e) => e.target.select()}
+                            onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
+                            className="col-span-3 text-lg font-bold"
+                            autoFocus
                         />
                     </div>
                     {isOut && (

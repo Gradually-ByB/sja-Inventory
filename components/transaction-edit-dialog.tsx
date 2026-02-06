@@ -32,14 +32,14 @@ const OUTBOUND_DESTINATIONS = ["행정동", "PAC", "유/초등학교", "중/고�
 
 export function TransactionEditDialog({ transaction, trigger }: TransactionEditDialogProps) {
     const [open, setOpen] = useState(false);
-    const [quantity, setQuantity] = useState<number>(transaction.quantity);
+    const [quantity, setQuantity] = useState<string>(transaction.quantity.toString());
     const [description, setDescription] = useState(transaction.description || "");
     const [date, setDate] = useState<Date>(new Date(transaction.createdAt));
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (open) {
-            setQuantity(transaction.quantity);
+            setQuantity(transaction.quantity.toString());
             setDescription(transaction.description || "");
             setDate(new Date(transaction.createdAt));
         }
@@ -48,12 +48,13 @@ export function TransactionEditDialog({ transaction, trigger }: TransactionEditD
     const isOut = transaction.type === "OUT";
 
     async function handleConfirm() {
-        if (quantity <= 0) return;
+        const q = Number(quantity);
+        if (isNaN(q) || q <= 0) return;
 
         setLoading(true);
         try {
             await updateTransaction(transaction.id, {
-                quantity,
+                quantity: q,
                 description,
                 createdAt: date,
             });
@@ -130,10 +131,14 @@ export function TransactionEditDialog({ transaction, trigger }: TransactionEditD
                         <Label className="text-right">수량</Label>
                         <Input
                             type="number"
+                            inputMode="numeric"
                             min="1"
                             value={quantity}
-                            onChange={(e) => setQuantity(Number(e.target.value))}
-                            className="col-span-3"
+                            onChange={(e) => setQuantity(e.target.value)}
+                            onFocus={(e) => e.target.select()}
+                            onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
+                            className="col-span-3 text-lg font-bold"
+                            autoFocus
                         />
                     </div>
                     {isOut ? (

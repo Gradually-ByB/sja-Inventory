@@ -210,9 +210,11 @@ export function ItemForm({ item, open, onOpenChange, trigger }: ItemFormProps) {
                                             <FormControl>
                                                 <Input
                                                     type="number"
+                                                    inputMode="numeric"
                                                     className="h-10 bg-slate-50 border-slate-200"
                                                     disabled={isSubmitting}
                                                     {...field}
+                                                    onFocus={(e) => e.target.select()}
                                                 />
                                             </FormControl>
                                             <FormMessage className="text-xs" />
