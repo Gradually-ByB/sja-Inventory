@@ -16,6 +16,8 @@ import { toast } from "sonner";
 import { TransactionType } from "@prisma/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
+
 interface StockDialogProps {
     itemId: string;
     itemName: string;
@@ -58,8 +60,16 @@ export function StockDialog({ itemId, itemName, currentStock, type }: StockDialo
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant={isOut ? "destructive" : "default"} size="sm">
-                    {isOut ? "출고" : "입고"}
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className={`h-8 px-2.5 text-[11px] font-bold ${isOut
+                            ? "text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700 dark:border-rose-900/50 dark:hover:bg-rose-950/20"
+                            : "text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 dark:border-emerald-900/50 dark:hover:bg-emerald-950/20"
+                        }`}
+                >
+                    {isOut ? <ArrowUpRight className="mr-1 h-3 w-3" /> : <ArrowDownLeft className="mr-1 h-3 w-3" />}
+                    {isOut ? "OUT" : "IN"}
                 </Button>
             </DialogTrigger>
             <DialogContent>

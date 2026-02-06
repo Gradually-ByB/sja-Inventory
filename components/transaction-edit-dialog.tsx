@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 import { CalendarIcon, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -111,7 +112,7 @@ export function TransactionEditDialog({ transaction, trigger }: TransactionEditD
                                     )}
                                 >
                                     <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {date ? format(date, "PPP") : <span>날짜 선택</span>}
+                                    {date ? format(date, "PPP", { locale: ko }) : <span>날짜 선택</span>}
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0">
@@ -120,6 +121,7 @@ export function TransactionEditDialog({ transaction, trigger }: TransactionEditD
                                     selected={date}
                                     onSelect={(d) => d && setDate(d)}
                                     initialFocus
+                                    locale={ko}
                                 />
                             </PopoverContent>
                         </Popover>

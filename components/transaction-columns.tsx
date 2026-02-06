@@ -9,64 +9,66 @@ import { TransactionEditDialog } from "@/components/transaction-edit-dialog";
 export const transactionColumns: ColumnDef<any>[] = [
     {
         accessorKey: "item.imageUrl",
-        header: "이미지",
+        header: () => <div className="text-center w-full">이미지</div>,
         cell: ({ row }) => (
-            <ItemImage
-                src={row.original.item.imageUrl}
-                alt={row.original.item.name}
-                size="sm"
-            />
+            <div className="flex justify-center">
+                <ItemImage
+                    src={row.original.item.imageUrl}
+                    alt={row.original.item.name}
+                    size="sm"
+                    className="rounded-md border"
+                />
+            </div>
         )
     },
     {
-        accessorKey: "createdAt",
-        header: "일시",
-        cell: ({ row }) => {
-            return format(new Date(row.getValue("createdAt")), "yyyy-MM-dd");
-        },
-    },
-    {
         accessorKey: "item.name",
-        header: "품명",
-        cell: ({ row }) => <span className="font-bold">{row.original.item.name}</span>
-    },
-    {
-        accessorKey: "type",
-        header: "구분",
-        cell: ({ row }) => {
-            const type = row.getValue("type") as string;
-            return (
-                <Badge variant={type === "IN" ? "default" : "destructive"}>
-                    {type === "IN" ? "입고" : "출고"}
-                </Badge>
-            );
-        },
-    },
-    {
-        accessorKey: "item.unit",
-        header: "단위",
-        cell: ({ row }) => <span className="text-xs text-muted-foreground font-bold">{row.original.item.unit}</span>
+        header: () => <div className="text-center w-full">품명</div>,
+        cell: ({ row }) => (
+            <div className="flex justify-center">
+                <span className="text-sm font-semibold">{row.original.item.name}</span>
+            </div>
+        )
     },
     {
         accessorKey: "quantity",
-        header: "수량",
-        cell: ({ row }) => {
-            return <span className="font-bold">{row.getValue("quantity")}</span>;
-        },
+        header: () => <div className="text-center w-full">수량/단위</div>,
+        cell: ({ row }) => (
+            <div className="text-center flex items-baseline justify-center gap-1">
+                <span className="text-sm font-bold tabular-nums">{row.getValue("quantity")}</span>
+                <span className="text-[10px] text-muted-foreground font-medium">{row.original.item.unit}</span>
+            </div>
+        ),
+    },
+    {
+        accessorKey: "createdAt",
+        header: () => <div className="text-center w-full">날짜</div>,
+        cell: ({ row }) => (
+            <div className="text-center">
+                <span className="text-xs text-muted-foreground font-medium">
+                    {format(new Date(row.getValue("createdAt")), "yyyy-MM-dd")}
+                </span>
+            </div>
+        ),
     },
     {
         accessorKey: "description",
-        header: "비고란",
+        header: () => <div className="text-center w-[120px] mx-auto">비고</div>,
+        cell: ({ row }) => (
+            <div className="text-center w-[120px] mx-auto">
+                <span className="text-xs text-muted-foreground italic truncate block">
+                    {row.getValue("description") || "-"}
+                </span>
+            </div>
+        )
     },
     {
         id: "actions",
-        header: "관리",
-        cell: ({ row }) => {
-            return (
-                <TransactionEditDialog
-                    transaction={row.original}
-                />
-            );
-        },
+        header: () => <div className="text-center w-full">수정</div>,
+        cell: ({ row }) => (
+            <div className="flex justify-center">
+                <TransactionEditDialog transaction={row.original} />
+            </div>
+        ),
     },
 ];
