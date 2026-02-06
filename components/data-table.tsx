@@ -77,7 +77,8 @@ export function DataTable<TData, TValue>({
                     )}
                 </div>
             )}
-            <div className="w-full">
+            {/* Desktop Table View */}
+            <div className="hidden md:block w-full overflow-x-auto custom-scrollbar">
                 <Table>
                     <TableHeader className="bg-muted/30">
                         {table.getHeaderGroups().map((headerGroup) => (
@@ -127,6 +128,86 @@ export function DataTable<TData, TValue>({
                         )}
                     </TableBody>
                 </Table>
+            </div>
+
+            {/* Mobile Card List View */}
+            <div className="block md:hidden space-y-4 px-4 pb-4">
+                {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map((row) => (
+                        <div
+                            key={row.id}
+                            className="bg-card rounded-xl border border-border/50 p-4 space-y-3 premium-shadow transition-all active:scale-[0.98]"
+                        >
+                            <div className="flex flex-wrap items-start justify-between gap-2">
+                                {row.getVisibleCells().map((cell, index) => {
+                                    // Identify columns by their accessor or ID (based on columns.tsx)
+                                    const columnId = cell.column.id;
+                                    const isActions = columnId === "actions";
+                                    const isImage = columnId === "image" || columnId.includes("img");
+                                    const isItemName = index === 1;
+
+                                    const labelMap: { [key: string]: string } = {
+                                        image: "이미지",
+                                        imageUrl: "이미지",
+                                        "item.imageUrl": "이미지",
+                                        item_imageUrl: "이미지",
+                                        name: "품명",
+                                        "item.name": "품명",
+                                        item_name: "품명",
+                                        category: "카테고리",
+                                        "item.category": "카테고리",
+                                        unit: "단위",
+                                        "item.unit": "단위",
+                                        currentStock: "재고",
+                                        currentStock_unit: "재고/단위",
+                                        location: "위치",
+                                        createdAt: "날짜",
+                                        quantity: "수량",
+                                        quantity_unit: "수량/단위",
+                                        totalStockOutQty: "출고량/단위",
+                                        description: "비고",
+                                        actions: "관리/수정"
+                                    };
+
+                                    const label = typeof cell.column.columnDef.header === "string"
+                                        ? cell.column.columnDef.header
+                                        : (labelMap[columnId] || columnId);
+
+                                    if (isImage) {
+                                        return (
+                                            <div key={cell.id} className="w-12 h-12 rounded-lg overflow-hidden border border-border">
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </div>
+                                        );
+                                    }
+
+                                    if (isActions) {
+                                        return (
+                                            <div key={cell.id} className="w-full pt-2 flex items-center justify-center border-t border-border/50 mt-2">
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </div>
+                                        );
+                                    }
+
+                                    return (
+                                        <div key={cell.id} className="flex-1 min-w-[120px] flex flex-col items-center text-center">
+                                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter mb-0.5">
+                                                {label}
+                                            </span>
+                                            <div className="text-sm font-medium">
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="py-12 text-center text-muted-foreground text-sm">
+                        데이터 결과가 없습니다.
+                    </div>
+                )}
             </div>
         </div>
     )

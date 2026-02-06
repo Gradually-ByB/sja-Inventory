@@ -139,6 +139,15 @@
     background: radial-gradient(circle at top right, oklch(var(--primary) / 0.03), transparent 40%),
       var(--background);
   }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
 @layer base {

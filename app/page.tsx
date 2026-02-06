@@ -55,35 +55,38 @@ export default async function Home({
         </div>
       </nav>
 
-      <main className="flex-1 p-6 lg:p-8 max-w-[1600px] mx-auto w-full space-y-8 animate-in fade-in duration-500">
+      <main className="flex-1 p-4 md:p-8 max-w-[1600px] mx-auto w-full space-y-6 md:space-y-8 animate-in fade-in duration-500">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-1">
-            <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">재고 관리 대시보드</h2>
-            <p className="text-sm text-muted-foreground">국제학교지원처 환경팀 소모품 및 입출고 현황 </p>
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 text-center md:text-left">재고 관리 대시보드</h2>
+            <p className="text-xs md:text-sm text-muted-foreground text-center md:text-left">국제학교지원처 환경팀 소모품 및 입출고 현황 </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center md:justify-end gap-3">
             <DatePickerSingle />
           </div>
         </div>
 
         <Tabs defaultValue="inventory" className="space-y-6">
-          <TabsList className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground">
-            <TabsTrigger value="inventory" className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-              전체 재고
-            </TabsTrigger>
-            <TabsTrigger value="stock-in" className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-              입고 기록
-            </TabsTrigger>
-            <TabsTrigger value="stock-out" className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-              출고 기록
-            </TabsTrigger>
-            <TabsTrigger value="daily-summary" className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-              일별 요약
-            </TabsTrigger>
-          </TabsList>
+          <div className="w-full overflow-x-auto pb-1 scrollbar-hide">
+            <TabsList className="inline-flex h-10 w-full md:w-auto items-center justify-start md:justify-center rounded-md bg-muted p-1 text-muted-foreground whitespace-nowrap">
+              <TabsTrigger value="inventory" className="flex-1 md:flex-none inline-flex items-center justify-center whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                전체 재고
+              </TabsTrigger>
+              <TabsTrigger value="stock-in" className="flex-1 md:flex-none inline-flex items-center justify-center whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                입고 기록
+              </TabsTrigger>
+              <TabsTrigger value="stock-out" className="flex-1 md:flex-none inline-flex items-center justify-center whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                출고 기록
+              </TabsTrigger>
+              <TabsTrigger value="daily-summary" className="flex-1 md:flex-none inline-flex items-center justify-center whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                일별 요약
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-3 space-y-6">
+            {/* Left Column (PC) / Top (Mobile): Main Content */}
+            <div className="order-1 lg:order-1 lg:col-span-3 space-y-6">
               <TabsContent value="inventory" className="mt-0 outline-none">
                 <Card className="premium-shadow border-border mt-0 overflow-hidden bg-card">
                   <CardHeader className="text-center">
@@ -129,7 +132,8 @@ export default async function Home({
               </TabsContent>
             </div>
 
-            <div className="space-y-6">
+            {/* Right Column (PC) / Bottom (Mobile): Chart */}
+            <div className="order-2 lg:order-2 space-y-6">
               <StockOutChart data={weeklySummary} />
             </div>
           </div>
