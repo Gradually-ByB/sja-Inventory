@@ -141,7 +141,7 @@ export default async function Home({
       </main>
 
       <footer className="py-8 text-center text-xs text-muted-foreground border-t mt-auto">
-        <p>© 2025 SJA Partners 환경팀 • Modern Inventory Solution</p>
+        <p>© 2025 JDCPartners 국제학교지원처 환경팀 • Modern Inventory Solution</p>
       </footer>
     </div>
   );
