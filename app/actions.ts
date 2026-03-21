@@ -325,3 +325,30 @@ export async function deleteTransaction(transactionId: string) {
 
     revalidatePath("/");
 }
+
+export async function getDashboardStats() {
+    const today = new Date();
+    const start = startOfDay(today);
+    const end = endOfDay(today);
+
+    const [totalItems, lowStockItems, todayIn, todayOut] = await Promise.all([
+        db.item.count(),
+        db.item.count({
+            where: { currentStock: { lte: 10 } }
+        }),
+        db.transaction.count({
+            where: {
+                type: "IN",
+                createdAt: { gte: start, lte: end }
+            }
+        }),
+        db.transaction.count({
+            where: {
+                type: "OUT",
+                createdAt: { gte: start, lte: end }
+            }
+        })
+    ]);
+
+    return { totalItems, lowStockItems, todayIn, todayOut };
+}

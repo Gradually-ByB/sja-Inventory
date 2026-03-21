@@ -28,13 +28,24 @@ export const columns: ColumnDef<Item>[] = [
     },
     {
         accessorKey: "name",
-        header: () => <div className="text-center w-full">품명</div>,
-        cell: ({ row }) => (
-            <div className="flex flex-col items-center">
-                <span className="text-sm font-semibold text-foreground leading-none">{row.getValue("name")}</span>
-                <span className="text-[11px] text-muted-foreground mt-1">{row.original.category}</span>
-            </div>
-        )
+        header: () => <div className="text-left pl-8 w-full">품명</div>,
+        cell: ({ row }) => {
+            const category = row.original.category;
+            const getCategoryColor = (cat: string) => {
+                if (cat.includes("소모품")) return "bg-sky-50 text-sky-600 border-sky-100";
+                if (cat.includes("위생")) return "bg-orange-50 text-orange-600 border-orange-100";
+                if (cat.includes("세제")) return "bg-emerald-50 text-emerald-600 border-emerald-100";
+                return "bg-slate-50 text-slate-500 border-slate-100";
+            };
+            return (
+                <div className="flex flex-col items-start pl-8">
+                    <span className="text-sm font-bold text-slate-800 leading-tight">{row.getValue("name")}</span>
+                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-md mt-1.5 border ${getCategoryColor(category)}`}>
+                        {category}
+                    </span>
+                </div>
+            );
+        }
     },
     {
         accessorKey: "currentStock",
@@ -42,18 +53,19 @@ export const columns: ColumnDef<Item>[] = [
         cell: ({ row }) => {
             const stock = row.getValue("currentStock") as number;
             const unit = row.original.unit;
+            const isLow = stock <= 10;
             return (
-                <div className="flex items-center justify-center gap-2">
+                <div className="flex flex-col items-center justify-center">
                     <div className="flex items-baseline gap-1">
-                        <span className={`text-sm font-bold tabular-nums ${stock < 5 ? 'text-destructive' : 'text-foreground'}`}>
+                        <span className={`text-base font-black tabular-nums tracking-tighter ${isLow ? 'text-rose-500' : 'text-slate-800'}`}>
                             {stock}
                         </span>
-                        <span className="text-[11px] text-muted-foreground font-medium">{unit}</span>
+                        <span className="text-[11px] text-slate-400 font-bold">{unit}</span>
                     </div>
-                    {stock < 5 && (
-                        <Badge variant="destructive" className="h-4 px-1.5 text-[9px] uppercase font-black rounded-sm border-none">
-                            Low
-                        </Badge>
+                    {isLow && (
+                        <div className="flex items-center gap-1 mt-1 font-black text-[9px] text-rose-500 uppercase tracking-widest animate-pulse">
+                            ⚠️ 재고 부족
+                        </div>
                     )}
                 </div>
             );
@@ -64,9 +76,9 @@ export const columns: ColumnDef<Item>[] = [
         header: () => <div className="text-center w-full">위치</div>,
         cell: ({ row }) => (
             <div className="flex justify-center">
-                <span className="text-sm font-normal text-muted-foreground">
+                <Badge variant="secondary" className="bg-slate-50 text-slate-500 font-bold px-3 py-1 rounded-lg border-slate-100 text-[11px]">
                     {row.getValue("location")}
-                </span>
+                </Badge>
             </div>
         )
     },
@@ -76,14 +88,34 @@ export const columns: ColumnDef<Item>[] = [
         cell: ({ row }) => {
             const item = row.original;
             return (
-                <div className="flex items-center justify-center gap-1">
-                    <StockDialog itemId={item.id} itemName={item.name} currentStock={item.currentStock} type="IN" />
-                    <StockDialog itemId={item.id} itemName={item.name} currentStock={item.currentStock} type="OUT" />
-                    <div className="w-px h-4 bg-border mx-1" />
+                <div className="flex items-center justify-center gap-2">
+                    <StockDialog 
+                        itemId={item.id} 
+                        itemName={item.name} 
+                        currentStock={item.currentStock} 
+                        type="IN" 
+                        trigger={
+                            <Button size="sm" variant="outline" className="h-8 px-2.5 rounded-lg border-emerald-100 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-black text-[10px] uppercase tracking-wider">
+                                ↓ IN
+                            </Button>
+                        }
+                    />
+                    <StockDialog 
+                        itemId={item.id} 
+                        itemName={item.name} 
+                        currentStock={item.currentStock} 
+                        type="OUT" 
+                        trigger={
+                            <Button size="sm" variant="outline" className="h-8 px-2.5 rounded-lg border-rose-100 bg-rose-50 text-rose-600 hover:bg-rose-100 font-black text-[10px] uppercase tracking-wider">
+                                ↑ OUT
+                            </Button>
+                        }
+                    />
+                    <div className="w-px h-4 bg-slate-100 mx-2" />
                     <ItemForm
                         item={item}
                         trigger={
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg">
                                 <Pencil className="h-3.5 w-3.5" />
                             </Button>
                         }
@@ -91,7 +123,7 @@ export const columns: ColumnDef<Item>[] = [
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        className="h-8 w-8 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg"
                         onClick={async () => {
                             if (confirm("삭제하시겠습니까?")) {
                                 try {

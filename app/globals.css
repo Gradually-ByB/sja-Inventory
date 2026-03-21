@@ -50,17 +50,17 @@
   --radius: 0.75rem;
 
   /* Modern Professional Theme (Zinc + Indigo) */
-  --background: oklch(0.98 0.005 240);
-  --foreground: oklch(0.2 0.02 240);
+  --background: oklch(0.99 0.005 175);
+  --foreground: oklch(0.2 0.02 175);
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0.02 240);
+  --card-foreground: oklch(0.2 0.02 175);
 
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.02 240);
+  --popover-foreground: oklch(0.2 0.02 175);
 
-  --primary: oklch(0.5 0.15 255);
-  /* Sharp Indigo */
+  --primary: oklch(0.55 0.12 175);
+  /* Teal/Emerald */
   --primary-foreground: oklch(0.99 0 0);
 
   --secondary: oklch(0.96 0.01 240);

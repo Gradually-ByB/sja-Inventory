@@ -1,4 +1,4 @@
-import { getItems, getTransactions, getDailyStockOutSummary, getWeeklyStockOutSummary } from "./actions";
+import { getItems, getTransactions, getDailyStockOutSummary, getWeeklyStockOutSummary, getDashboardStats } from "./actions";
 import { StockOutChart } from "@/components/stock-out-chart";
 import { DataTable } from "@/components/data-table";
 import { columns } from "@/components/columns";
@@ -9,8 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
-import logo from "./images/logo1.png";
-import { startOfDay, endOfDay } from "date-fns";
+import logo from "./images/logo.png";
+import { format, startOfDay, endOfDay } from "date-fns";
+import { ko } from "date-fns/locale";
+import { Package, AlertTriangle, ArrowUpRight, ArrowDownRight, Bell, BellRing, BarChart as BarChartIcon } from "lucide-react";
+import { Suspense } from "react";
 
 export default async function Home({
   searchParams,
@@ -18,90 +21,76 @@ export default async function Home({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const params = await searchParams;
-  const targetDate = params.date ? new Date(params.date as string) : new Date();
-  const from = startOfDay(targetDate);
-  const to = endOfDay(targetDate);
+  const dateStr = typeof params.date === "string" ? params.date : undefined;
+  const targetDate = dateStr ? new Date(dateStr) : new Date();
+  const start = startOfDay(targetDate);
+  const end = endOfDay(targetDate);
 
-  const [items, inTransactions, outTransactions, dailySummary, weeklySummary] = await Promise.all([
+  const [items, inTransactions, outTransactions, dailySummary, weeklySummary, stats] = await Promise.all([
     getItems(),
     getTransactions("IN"),
     getTransactions("OUT"),
-    getDailyStockOutSummary(from, to),
-    getWeeklyStockOutSummary()
+    getDailyStockOutSummary(start, end),
+    getWeeklyStockOutSummary(),
+    getDashboardStats()
   ]);
 
+  const lowStockItems = items.filter(i => i.currentStock <= 10).slice(0, 5);
+
   return (
-    <div className="min-h-screen bg-background premium-gradient flex flex-col font-sans selection:bg-primary/10">
-      <nav className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
-        <div className="max-w-[1600px] mx-auto px-6 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-8">
-            <a
-              href="https://gwa.jdcpartners.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:opacity-80 transition-opacity"
-            >
-              <Image
-                src={logo}
-                alt="SJA Partners Logo"
-                priority
-                className="h-10 w-auto object-contain"
-              />
-            </a>
-            <div className="h-6 w-px bg-border hidden md:block" />
-
-          </div>
-
+    <div className="min-h-screen bg-slate-50/50 flex flex-col font-sans selection:bg-teal-100">
+      <nav className="w-full bg-slate-50/50 px-6 py-4 flex items-center justify-between sticky top-0 z-50 backdrop-blur-md">
+        <div className="flex items-center gap-4">
+          <Image src={logo} alt="SJA Partners Logo" priority className="h-10 w-auto object-contain" />
+          <span className="text-2xl font-black text-teal-600 tracking-tight scale-y-[1.1]">재고 관리 대시보드</span>
         </div>
       </nav>
 
-      <main className="flex-1 p-4 md:p-8 max-w-[1600px] mx-auto w-full space-y-6 md:space-y-8 animate-in fade-in duration-500">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="space-y-1">
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 text-center md:text-left">재고 관리 대시보드</h2>
-            <p className="text-xs md:text-sm text-muted-foreground text-center md:text-left">국제학교지원처 환경팀 소모품 및 입출고 현황 </p>
-          </div>
-          <div className="flex items-center justify-center md:justify-end gap-3">
-            <DatePickerSingle />
-          </div>
-        </div>
-
+      <main className="flex-1 p-6 md:p-10 max-w-[1600px] mx-auto w-full space-y-8 animate-in fade-in duration-500">
         <Tabs defaultValue="inventory" className="space-y-6">
-          <div className="w-full overflow-x-auto pb-1 scrollbar-hide">
-            <TabsList className="inline-flex h-10 w-full md:w-auto items-center justify-start md:justify-center rounded-md bg-muted p-1 text-muted-foreground whitespace-nowrap">
-              <TabsTrigger value="inventory" className="flex-1 md:flex-none inline-flex items-center justify-center whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                전체 재고
-              </TabsTrigger>
-              <TabsTrigger value="stock-in" className="flex-1 md:flex-none inline-flex items-center justify-center whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                입고 기록
-              </TabsTrigger>
-              <TabsTrigger value="stock-out" className="flex-1 md:flex-none inline-flex items-center justify-center whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                출고 기록
-              </TabsTrigger>
-              <TabsTrigger value="daily-summary" className="flex-1 md:flex-none inline-flex items-center justify-center whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                일별 요약
-              </TabsTrigger>
-            </TabsList>
-          </div>
+          <TabsList className="bg-transparent border-none gap-4 p-0 h-auto">
+            <TabsTrigger value="inventory" className="data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md border border-slate-200 text-slate-500 font-bold px-6 py-2.5 rounded-lg transition-all hover:bg-slate-100">전체 재고</TabsTrigger>
+            <TabsTrigger value="stock-in" className="data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md border border-slate-200 text-slate-500 font-bold px-6 py-2.5 rounded-lg transition-all hover:bg-slate-100">입고 기록</TabsTrigger>
+            <TabsTrigger value="stock-out" className="data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md border border-slate-200 text-slate-500 font-bold px-6 py-2.5 rounded-lg transition-all hover:bg-slate-100">출고 기록</TabsTrigger>
+            <TabsTrigger value="daily-summary" className="data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md border border-slate-200 text-slate-500 font-bold px-6 py-2.5 rounded-lg transition-all hover:bg-slate-100">일별 요약</TabsTrigger>
+          </TabsList>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Left Column (PC) / Top (Mobile): Main Content */}
-            <div className="order-1 lg:order-1 lg:col-span-3 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Left Content Column */}
+            <div className="lg:col-span-8 space-y-8">
               <TabsContent value="inventory" className="mt-0 outline-none">
-                <Card className="premium-shadow border-border mt-0 overflow-hidden bg-card">
-                  <CardHeader className="text-center">
-                    <CardTitle className="text-lg">전체 품목 현황</CardTitle>
+                <Card className="border-none shadow-xl shadow-slate-100/50 rounded-3xl overflow-hidden bg-white">
+                  <CardHeader className="px-8 py-6 border-b border-slate-50 flex flex-row items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center">
+                        <Package className="w-5 h-5 text-teal-600" />
+                      </div>
+                      <CardTitle className="text-xl font-bold text-slate-800">전체 품목 현황</CardTitle>
+                    </div>
+                    
+                    <Suspense fallback={<div className="h-10 w-40 animate-pulse bg-slate-100 rounded-xl" />}>
+                      <DatePickerSingle />
+                    </Suspense>
                   </CardHeader>
-                  <div className="p-0">
+                  <CardContent className="p-0">
                     <DataTable columns={columns} data={items} />
-                  </div>
+                  </CardContent>
                 </Card>
               </TabsContent>
 
               <TabsContent value="stock-in" className="mt-0 outline-none">
-                <Card className="premium-shadow border-border mt-0 overflow-hidden bg-card">
-                  <CardHeader className="text-center">
-                    <CardTitle className="text-lg">입고 상세 내역</CardTitle>
+                <Card className="border-none shadow-xl shadow-slate-100/50 rounded-3xl overflow-hidden bg-white">
+                  <CardHeader className="px-8 py-6 border-b border-slate-50 flex flex-row items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+                        <ArrowDownRight className="w-5 h-5 text-emerald-600" />
+                      </div>
+                      <CardTitle className="text-xl font-bold text-slate-800">입고 상세 내역</CardTitle>
+                    </div>
+
+                    <Suspense fallback={<div className="h-10 w-40 animate-pulse bg-slate-100 rounded-xl" />}>
+                      <DatePickerSingle />
+                    </Suspense>
                   </CardHeader>
                   <CardContent className="p-0">
                     <DataTable columns={transactionColumns} data={inTransactions} hideAddButton hideFilter filterColumn="item.name" />
@@ -110,9 +99,18 @@ export default async function Home({
               </TabsContent>
 
               <TabsContent value="stock-out" className="mt-0 outline-none">
-                <Card className="premium-shadow border-border mt-0 overflow-hidden bg-card">
-                  <CardHeader className="text-center">
-                    <CardTitle className="text-lg">출고 상세 내역</CardTitle>
+                <Card className="border-none shadow-xl shadow-slate-100/50 rounded-3xl overflow-hidden bg-white">
+                  <CardHeader className="px-8 py-6 border-b border-slate-50 flex flex-row items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center">
+                        <ArrowUpRight className="w-5 h-5 text-rose-600" />
+                      </div>
+                      <CardTitle className="text-xl font-bold text-slate-800">출고 상세 내역</CardTitle>
+                    </div>
+
+                    <Suspense fallback={<div className="h-10 w-40 animate-pulse bg-slate-100 rounded-xl" />}>
+                      <DatePickerSingle />
+                    </Suspense>
                   </CardHeader>
                   <CardContent className="p-0">
                     <DataTable columns={transactionColumns} data={outTransactions} hideAddButton hideFilter filterColumn="item.name" />
@@ -121,9 +119,18 @@ export default async function Home({
               </TabsContent>
 
               <TabsContent value="daily-summary" className="mt-0 outline-none">
-                <Card className="premium-shadow border-border mt-0 overflow-hidden bg-card">
-                  <CardHeader className="text-center">
-                    <CardTitle className="text-lg">일별 출고 데이터</CardTitle>
+                <Card className="border-none shadow-xl shadow-slate-100/50 rounded-3xl overflow-hidden bg-white">
+                  <CardHeader className="px-8 py-6 border-b border-slate-50 flex flex-row items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center">
+                        <BarChartIcon className="w-5 h-5 text-teal-600" />
+                      </div>
+                      <CardTitle className="text-xl font-bold text-slate-800">일별 출고 데이터</CardTitle>
+                    </div>
+
+                    <Suspense fallback={<div className="h-10 w-40 animate-pulse bg-slate-100 rounded-xl" />}>
+                      <DatePickerSingle />
+                    </Suspense>
                   </CardHeader>
                   <CardContent className="p-0">
                     <DataTable columns={dailySummaryColumns} data={dailySummary} hideAddButton hideFilter filterColumn="item.name" />
@@ -132,17 +139,58 @@ export default async function Home({
               </TabsContent>
             </div>
 
-            {/* Right Column (PC) / Bottom (Mobile): Chart */}
-            <div className="order-2 lg:order-2 space-y-6">
-              <StockOutChart data={weeklySummary} />
+            {/* Right Side Column */}
+            <div className="lg:col-span-4 space-y-6">
+              <StockOutChart data={weeklySummary} height="320px" />
+
+              <Card className="border-none shadow-xl shadow-slate-100/50 rounded-3xl overflow-hidden bg-white">
+                <CardHeader className="px-6 py-4 border-b border-slate-50 flex flex-row items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center">
+                    <BellRing className="w-4 h-4 text-orange-500" />
+                  </div>
+                  <CardTitle className="text-lg font-bold text-slate-800">재고 부족 알림</CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {lowStockItems.length === 0 ? (
+                    <p className="text-sm text-slate-400 text-center py-4">재고 부족 품목이 없습니다.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {lowStockItems.map(item => (
+                        <div key={item.id} className="flex items-center justify-between group">
+                          <span className="text-sm font-bold text-slate-700">{item.name}</span>
+                          <span className="text-sm font-black text-rose-500 bg-rose-50 px-2 py-0.5 rounded-full">{item.currentStock} {item.unit}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </div>
         </Tabs>
       </main>
 
-      <footer className="py-8 text-center text-xs text-muted-foreground border-t mt-auto">
-        <p>© 2025 JDCPartners 국제학교지원처 환경팀 • Modern Inventory Solution</p>
+      <footer className="py-8 text-center text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em] mt-auto">
+        <p>© 2026 JDCPartners 국제학교지원처 환경팀 • Modern Inventory Solution</p>
       </footer>
     </div>
+  );
+}
+
+function StatCard({ title, value, icon, iconBg, color }: { title: string; value: number; icon: React.ReactNode; iconBg: string; color: string }) {
+  return (
+    <Card className="border-none shadow-lg shadow-slate-100/50 rounded-3xl overflow-hidden group hover:scale-[1.02] transition-all bg-white p-6">
+      <div className="flex items-start justify-between">
+        <div className="space-y-3">
+          <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">{title}</p>
+          <div className="flex items-baseline gap-1">
+            <span className="text-4xl font-black text-slate-800 tracking-tighter">{value}</span>
+          </div>
+        </div>
+        <div className={`p-3.5 rounded-2xl ${iconBg} shadow-inner transition-transform group-hover:rotate-12`}>
+          {icon}
+        </div>
+      </div>
+    </Card>
   );
 }

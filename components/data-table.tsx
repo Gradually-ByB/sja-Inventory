@@ -7,7 +7,9 @@ import {
     getCoreRowModel,
     useReactTable,
     getFilteredRowModel,
+    getPaginationRowModel,
     ColumnFiltersState,
+    PaginationState,
 } from "@tanstack/react-table"
 import {
     Table,
@@ -21,7 +23,7 @@ import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ItemForm } from "@/components/item-form"
-import { Plus, Search } from "lucide-react"
+import { Plus, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -29,6 +31,7 @@ interface DataTableProps<TData, TValue> {
     hideAddButton?: boolean
     hideFilter?: boolean
     filterColumn?: string
+    pageSize?: number
 }
 
 export function DataTable<TData, TValue>({
@@ -37,8 +40,13 @@ export function DataTable<TData, TValue>({
     hideAddButton = false,
     hideFilter = false,
     filterColumn = "name",
+    pageSize = 5,
 }: DataTableProps<TData, TValue>) {
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+    const [pagination, setPagination] = useState<PaginationState>({
+        pageIndex: 0,
+        pageSize: pageSize,
+    })
 
     const table = useReactTable({
         data,
@@ -46,32 +54,35 @@ export function DataTable<TData, TValue>({
         getCoreRowModel: getCoreRowModel(),
         onColumnFiltersChange: setColumnFilters,
         getFilteredRowModel: getFilteredRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        onPaginationChange: setPagination,
         state: {
             columnFilters,
+            pagination,
         },
     })
 
     return (
         <div className="space-y-4">
             {(!hideFilter || !hideAddButton) && (
-                <div className="flex items-center justify-between gap-4 px-6 py-4 border-b">
+                <div className="flex items-center justify-between gap-4 px-8 py-6">
                     {!hideFilter && (
-                        <div className="relative w-full max-w-xs">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <div className="relative w-full max-w-sm">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                             <Input
-                                placeholder="검색..."
+                                placeholder="품명 또는 분류 검색..."
                                 value={(table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""}
                                 onChange={(event) =>
                                     table.getColumn(filterColumn)?.setFilterValue(event.target.value)
                                 }
-                                className="pl-9 h-9 text-sm rounded-md border-border bg-background focus-visible:ring-primary/30"
+                                className="pl-11 h-12 text-sm rounded-xl border-slate-100 bg-slate-50 focus-visible:ring-teal-500/20 focus-visible:bg-white transition-all placeholder:text-slate-300"
                             />
                         </div>
                     )}
                     {!hideAddButton && (
                         <ItemForm trigger={
-                            <Button size="sm" className="h-9 px-4 font-semibold">
-                                <Plus className="mr-2 h-4 w-4" />품목 추가
+                            <Button size="sm" className="h-12 px-6 font-bold bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-lg shadow-teal-100 transition-all active:scale-95">
+                                <Plus className="mr-1 h-4 w-4" />품목 추가
                             </Button>
                         } />
                     )}
@@ -80,9 +91,9 @@ export function DataTable<TData, TValue>({
             {/* Desktop Table View */}
             <div className="hidden md:block w-full overflow-x-auto custom-scrollbar">
                 <Table>
-                    <TableHeader className="bg-muted/30">
+                    <TableHeader className="bg-white">
                         {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id} className="hover:bg-transparent border-b">
+                            <TableRow key={headerGroup.id} className="hover:bg-transparent border-b border-slate-50">
                                 {headerGroup.headers.map((header) => {
                                     return (
                                         <TableHead key={header.id} className="text-center font-bold text-muted-foreground text-[13px] uppercase tracking-wider py-4 px-6">
@@ -209,6 +220,55 @@ export function DataTable<TData, TValue>({
                     </div>
                 )}
             </div>
+
+            {/* Pagination Controls */}
+            {table.getRowModel().rows?.length > 0 && (
+                <div className="flex items-center justify-center gap-2 px-8 py-6 border-t border-slate-50">
+                    <div className="flex items-center gap-1">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="hidden h-9 w-9 lg:flex border-slate-100 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50"
+                            onClick={() => table.setPageIndex(0)}
+                            disabled={!table.getCanPreviousPage()}
+                        >
+                            <ChevronsLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-9 w-9 border-slate-100 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50"
+                            onClick={() => table.previousPage()}
+                            disabled={!table.getCanPreviousPage()}
+                        >
+                            <ChevronLeft className="h-4 w-4" />
+                        </Button>
+
+                        <div className="flex items-center px-4 h-9 bg-slate-50 rounded-lg text-xs font-black text-slate-500 min-w-[100px] justify-center tracking-widest uppercase">
+                            {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+                        </div>
+
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-9 w-9 border-slate-100 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50"
+                            onClick={() => table.nextPage()}
+                            disabled={!table.getCanNextPage()}
+                        >
+                            <ChevronRight className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="hidden h-9 w-9 lg:flex border-slate-100 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50"
+                            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                            disabled={!table.getCanNextPage()}
+                        >
+                            <ChevronsRight className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

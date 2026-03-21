@@ -45,15 +45,15 @@ export function DatePickerSingle({
                         id="date"
                         variant={"outline"}
                         className={cn(
-                            "w-[240px] justify-start text-left font-normal",
+                            "w-auto justify-start text-left font-bold h-auto py-2.5 px-4 rounded-xl border-slate-200 bg-white/80 backdrop-blur shadow-sm hover:bg-slate-50 transition-all",
                             !selectedDate && "text-muted-foreground"
                         )}
                     >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        <CalendarIcon className="mr-2 h-4 w-4 text-teal-600" />
                         {selectedDate ? (
-                            format(selectedDate, "PPP", { locale: ko })
+                            <span className="text-sm text-slate-400 font-bold">{format(selectedDate, "yyyy년 M월 d일", { locale: ko })}</span>
                         ) : (
-                            <span>날짜를 선택하세요</span>
+                            <span className="text-sm text-slate-400 font-bold">날짜를 선택하세요</span>
                         )}
                     </Button>
                 </PopoverTrigger>
